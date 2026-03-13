@@ -26,6 +26,7 @@ class output_structure(BaseModel):
 def convert(id):
     folder = r"C:\Users\karth\OneDrive\Desktop\PROJECTS\digital_border_sys\passport_images"
     path = os.path.join(folder,id)
+    response = None
 
     model = ChatOpenAI(model = "gpt-4o-mini")
 
@@ -52,5 +53,8 @@ def convert(id):
     
     except Exception as e:
         print(f"Error : {e}")
+
+    if hasattr(response, "dict"):
+        return response.dict()
 
     return response

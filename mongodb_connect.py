@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from typing import TypedDict
 from dotenv import load_dotenv
 import os
+import datetime
 
 load_dotenv()
 
@@ -15,6 +16,7 @@ home_country_code = "IND"
 
 def build_record(id, info):
     return {
+        "created_at" : datetime.datetime.utcnow(),
         "person_id": id,
         "passport_type": info.get('Type'),
         "Country_Code": info.get("Country_Code"),
@@ -39,6 +41,7 @@ def build_record(id, info):
 def entry_db(id, info):
     entry_collection = db["daily_entry"]
     non_exit_collection = db["non_exit"]
+    all_collection = db["all-records"]
 
     record = build_record(id, info)
 
@@ -46,6 +49,7 @@ def entry_db(id, info):
 
     if info["Country_Code"] != home_country_code:
         non_exit_collection.insert_one(record)
+        all_collection.insert_one(record)
     print("Entry logged")
 
 
@@ -61,3 +65,6 @@ def exit_db(id, info):
         non_exit_collection.delete_one({"person_id": id})
     print("Exit logged")
 
+def get_data(id):
+    collection = db["all-records"]
+    return collection.find_one({"person_id": id})

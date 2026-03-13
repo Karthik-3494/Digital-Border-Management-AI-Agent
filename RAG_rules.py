@@ -31,7 +31,7 @@ def rag_model(info):
     else:
         retrieved_docs = retriever.invoke(info)
     
-    context_text = "\n\n".join([doc.page_content for doc in retrieved_docs])
+    context_text = "\n\n".join([f"Page {doc.metadata.get('page', 'Unknown')}: {doc.page_content}" for doc in retrieved_docs])
 
     model = ChatOpenAI(model = "gpt-4o")
 
@@ -50,6 +50,7 @@ def rag_model(info):
                 You can also refer to history of chats if available.
                 Show me how you think and analyze with the given info but don't make it VERY big. Then give the final verdict
                 include source metadata (page numbers) in results so the LLM can cite “page X” in verdicts.
+
                 DO NOT HALLUCINATE.
             """,
             input_variables=['info','data']
@@ -59,10 +60,12 @@ def rag_model(info):
             template = """
                 Take this query - 
                 {info}
-                and the relavent data -
+                and the relevant data -
                 {data}
                 and answer it accordingly 
                 Include source metadata (page numbers) in results so the LLM can cite “page X” in verdicts.
+                If the user wants to leave and explicitly tells bye or something related to that, then just give a one
+                word response "exit" from your side.
             """,
             input_variables=['info','data']
         )
