@@ -21,17 +21,15 @@ if not st.session_state.processed:
     col1, col2 = st.columns(2)
     
     with col1:
-        uploaded_file = st.file_uploader("Upload Passport Scan", type=["png", "jpg", "jpeg"])
+        if action in ["enter", "exit"]:
+            uploaded_file = st.file_uploader("Upload Passport Scan", type=["png", "jpg", "jpeg"])
+            retrieve_id = None
+        else:
+            retrieve_id = st.text_input("Enter Person ID to Retrieve (e.g., 123)")
+            uploaded_file = None
     
-    manual_inputs = {
-        "passport_validity_time": 6,
-        "visa_status": "Not Required",
-        "student_sevis_data": "N/A",
-        "i94_form_completed": False,
-        "customs_declaration_completed": False,
-        "biometrics_captured": False
-    }
-
+    manual_inputs = {} 
+    
     if action != "retrieve":
         with col2:
             st.markdown("**Additional Security Checks**")
@@ -59,17 +57,23 @@ if not st.session_state.processed:
 
     st.write("") 
     
-  
-    if uploaded_file and st.button("Run AI Verification", use_container_width=True, type="primary"):
-        folder = "passport_images"
-        os.makedirs(folder, exist_ok=True)
-        save_path = os.path.join(folder, uploaded_file.name)
-        with open(save_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
+    can_run = (action in ["enter", "exit"] and uploaded_file is not None) or (action == "retrieve" and retrieve_id)
 
-        with st.spinner("Agent is analyzing the document..."):
+    if can_run and st.button("Run AI Verification", use_container_width=True, type="primary"):
+        
+        if action in ["enter", "exit"]:
+            folder = "passport_images"
+            os.makedirs(folder, exist_ok=True)
+            save_path = os.path.join(folder, uploaded_file.name)
+            with open(save_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            person_id_val = uploaded_file.name
+        else:
+            person_id_val = str(retrieve_id) # Assign typed ID here
+
+        with st.spinner(f"Agent is {'retrieving data' if action == 'retrieve' else 'analyzing the document'}..."):
             initial_state = {
-                "person_id": uploaded_file.name, 
+                "person_id": person_id_val, 
                 "action": action,
                 "manual_inputs": manual_inputs
             }
@@ -97,7 +101,18 @@ if st.session_state.processed:
     
     with col_res1:
         st.subheader("Extracted Data")
-        st.json(st.session_state.final_state.get("scanned_data", st.session_state.final_state.get("db_data", {})))
+        
+        action_taken = st.session_state.final_state.get("action")
+        
+        if action_taken == "retrieve":
+            display_data = st.session_state.final_state.get("db_data", {})
+        else:
+            display_data = st.session_state.final_state.get("scanned_data", {})
+            
+        if not display_data:
+            st.warning("No data was found for this traveler.")
+        else:
+            st.json(display_data)
         
     with col_res2:
         st.subheader("AI Analysis & Chat")

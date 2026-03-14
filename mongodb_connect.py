@@ -67,5 +67,12 @@ def exit_db(id, info):
 
 def get_data(id):
     collection = db["all-records"]
-    numeric_id = int(str(id).split(".")[0]) 
-    return collection.find_one({"person_id": numeric_id})
+    numeric_id = int(str(id).split(".")[0])
+    record = collection.find_one({"person_id": numeric_id})
+    
+    if record:
+        record["_id"] = str(record["_id"]) 
+        if "created_at" in record:
+            record["created_at"] = str(record["created_at"]) 
+            
+    return record
