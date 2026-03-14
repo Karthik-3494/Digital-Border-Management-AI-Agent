@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-from typing import TypedDict
 from dotenv import load_dotenv
 import os
 import datetime
@@ -11,13 +10,14 @@ client = MongoClient(uri)
 
 db = client["people_record"]
 
-home_country_code = "IND"
+home_country_code = "USA"
 
 
 def build_record(id, info):
+    numeric_id = int(str(id).split(".")[0]) 
     return {
         "created_at" : datetime.datetime.utcnow(),
-        "person_id": id,
+        "person_id": numeric_id, 
         "passport_type": info.get('Type'),
         "Country_Code": info.get("Country_Code"),
         "Passport_No": info.get("Passport_No"),
@@ -58,13 +58,14 @@ def exit_db(id, info):
     non_exit_collection = db["non_exit"]
 
     record = build_record(id, info)
-
     exit_collection.insert_one(record)
 
+    numeric_id = int(str(id).split(".")[0]) 
     if info["Country_Code"] != home_country_code:
-        non_exit_collection.delete_one({"person_id": id})
+        non_exit_collection.delete_one({"person_id": numeric_id}) 
     print("Exit logged")
 
 def get_data(id):
     collection = db["all-records"]
-    return collection.find_one({"person_id": id})
+    numeric_id = int(str(id).split(".")[0]) 
+    return collection.find_one({"person_id": numeric_id})

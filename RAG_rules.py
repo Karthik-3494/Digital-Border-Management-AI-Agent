@@ -7,21 +7,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-#loaded the rules pdf
 pdf_path = r"C:\Users\karth\OneDrive\Desktop\PROJECTS\digital_border_sys\info_files\usa.pdf"
 
 loader = PyPDFLoader(pdf_path)
 pages = loader.load()
 
-#splitting it into chunks
 splitter = RecursiveCharacterTextSplitter(chunk_size = 500, chunk_overlap = 100)
 chunks = splitter.split_documents(pages)
 
-#embedding and storing
 embedder = OpenAIEmbeddings(model = "text-embedding-3-small")
 vector_db = FAISS.from_documents(chunks, embedder)
 
-#retriever 
 retriever = vector_db.as_retriever(search_type = "similarity",search_kwargs={"k" : 20})
 
 def rag_model(info):
