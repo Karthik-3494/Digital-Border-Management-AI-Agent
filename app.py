@@ -37,7 +37,7 @@ if not st.session_state.processed:
             visa = st.selectbox("Current Visa Status", ["Valid", "Expired", "Not Required", "Pending"])
             sevis = st.selectbox("Student SEVIS Status", ["N/A", "Active", "Inactive"])
             
-            st.write("") # Spacing for alignment
+            st.write("") 
             col_a, col_b, col_c = st.columns(3)
             with col_a:
                 i94 = st.checkbox("I-94 Completed?")
@@ -69,7 +69,7 @@ if not st.session_state.processed:
                 f.write(uploaded_file.getbuffer())
             person_id_val = uploaded_file.name
         else:
-            person_id_val = str(retrieve_id) # Assign typed ID here
+            person_id_val = str(retrieve_id) 
 
         with st.spinner(f"Agent is {'retrieving data' if action == 'retrieve' else 'analyzing the document'}..."):
             initial_state = {
