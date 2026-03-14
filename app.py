@@ -16,27 +16,51 @@ if "final_state" not in st.session_state:
 if not st.session_state.processed:
     st.subheader("1. Traveler Document & Details")
     
+    action = st.selectbox("Action", ["enter", "exit", "retrieve"])
+    
     col1, col2 = st.columns(2)
     
     with col1:
-        action = st.selectbox("Action", ["enter", "exit", "retrieve"])
         uploaded_file = st.file_uploader("Upload Passport Scan", type=["png", "jpg", "jpeg"])
-        
-    with col2:
-        st.markdown("**Additional Security Checks**")
-        validity = st.number_input("Passport Validity Remaining (Months)", min_value=0, value=6)
-        visa = st.selectbox("Current Visa Status", ["Valid", "Expired", "Not Required", "Pending"])
-        sevis = st.selectbox("Student SEVIS Status", ["N/A", "Active", "Inactive"])
-        
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            i94 = st.checkbox("I-94 Completed?")
-        with col_b:
-            customs = st.checkbox("Customs Cleared?")
-        with col_c:
-            bio = st.checkbox("Biometrics Captured?")
+    
+    manual_inputs = {
+        "passport_validity_time": 6,
+        "visa_status": "Not Required",
+        "student_sevis_data": "N/A",
+        "i94_form_completed": False,
+        "customs_declaration_completed": False,
+        "biometrics_captured": False
+    }
 
-    if uploaded_file and st.button("Run AI Verification"):
+    if action != "retrieve":
+        with col2:
+            st.markdown("**Additional Security Checks**")
+            validity = st.number_input("Passport Validity Remaining (Months)", min_value=0, value=6)
+            visa = st.selectbox("Current Visa Status", ["Valid", "Expired", "Not Required", "Pending"])
+            sevis = st.selectbox("Student SEVIS Status", ["N/A", "Active", "Inactive"])
+            
+            st.write("") # Spacing for alignment
+            col_a, col_b, col_c = st.columns(3)
+            with col_a:
+                i94 = st.checkbox("I-94 Completed?")
+            with col_b:
+                customs = st.checkbox("Customs Cleared?")
+            with col_c:
+                bio = st.checkbox("Biometrics Captured?")
+            
+            manual_inputs = {
+                "passport_validity_time": validity,
+                "visa_status": visa,
+                "student_sevis_data": sevis,
+                "i94_form_completed": i94,
+                "customs_declaration_completed": customs,
+                "biometrics_captured": bio
+            }
+
+    st.write("") 
+    
+  
+    if uploaded_file and st.button("Run AI Verification", use_container_width=True, type="primary"):
         folder = "passport_images"
         os.makedirs(folder, exist_ok=True)
         save_path = os.path.join(folder, uploaded_file.name)
@@ -47,14 +71,7 @@ if not st.session_state.processed:
             initial_state = {
                 "person_id": uploaded_file.name, 
                 "action": action,
-                "manual_inputs": {
-                    "passport_validity_time": validity,
-                    "visa_status": visa,
-                    "student_sevis_data": sevis,
-                    "i94_form_completed": i94,
-                    "customs_declaration_completed": customs,
-                    "biometrics_captured": bio
-                }
+                "manual_inputs": manual_inputs
             }
             final_state = agent_app.invoke(initial_state)
 
@@ -69,7 +86,7 @@ if not st.session_state.processed:
 if st.session_state.processed:
     st.success("Verification Complete!")
     
-    if st.button("Scan New Traveler"):
+    if st.button("Scan New Traveler", type="secondary"):
         st.session_state.processed = False
         st.session_state.messages = []
         st.session_state.final_state = {}
