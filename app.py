@@ -4,7 +4,54 @@ from graph import app as agent_app
 from tools import rag_system
 
 st.set_page_config(page_title="Border Control AI", layout="wide")
+
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if "user_role" not in st.session_state:
+    st.session_state.user_role = None
+
+if not st.session_state.logged_in:
+
+    st.title("Digital Border Control System")
+    st.subheader("Secure Access Portal")
+
+    role = st.selectbox(
+        "Select User Role",
+        ["Border Officer", "Supervisor", "Administrator"]
+    )
+
+    password = st.text_input("Enter Access Password", type="password")
+
+    if st.button("Login", type="primary", use_container_width=True):
+
+        credentials = {
+            "Border Officer": "officer123",
+            "Supervisor": "super123",
+            "Administrator": "admin123"
+        }
+
+        if credentials.get(role) == password:
+            st.session_state.logged_in = True
+            st.session_state.user_role = role
+            st.rerun()
+        else:
+            st.error("Invalid credentials")
+
+    st.stop()
+
 st.title("Digital Border Control System")
+
+col1, col2 = st.columns([4,1])
+
+with col1:
+    st.caption(f"Logged in as: {st.session_state.user_role}")
+
+with col2:
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.session_state.user_role = None
+        st.rerun()
 
 if "processed" not in st.session_state:
     st.session_state.processed = False

@@ -26,9 +26,9 @@ def retrieve_data(id):
     return retrieved_data
 
 @tool
-def rag_system(info):
+def rag_system(info, action = None):
     """Used to compare the retrieved or given dictionary info about traveler with the legal documents in the vector database in RAG system to check if the person must be allowed or not"""
-    response = rag_model(info)
+    response = rag_model(info,action = None)
     return response
 
     

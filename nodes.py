@@ -29,5 +29,5 @@ def db_node(state: agentstate) -> agentstate:
 
 def rag_node(state: agentstate) -> agentstate:
     info_to_pass = state.get("scanned_data") or state.get("db_data")
-    state["rag_response"] = rag_system.invoke({"info": info_to_pass})
+    state["rag_response"] = rag_system.invoke({"info": info_to_pass,"action": state.get("action")})
     return state

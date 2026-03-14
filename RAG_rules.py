@@ -20,7 +20,7 @@ vector_db = FAISS.from_documents(chunks, embedder)
 
 retriever = vector_db.as_retriever(search_type = "similarity",search_kwargs={"k" : 20})
 
-def rag_model(info):
+def rag_model(info, action):
     
     if isinstance(info, dict):
         retrieved_docs = retriever.invoke("Basis of allowing a traveler inside and include source metadata (page numbers) in results so the LLM can cite “page X” in verdicts.")
@@ -33,23 +33,32 @@ def rag_model(info):
 
     if isinstance(info, dict):
         prompt = PromptTemplate(
-            template = """
-                Take this info about the traveler - 
-                {info}
-                and the relavent data -
-                {data}
-                Cross-check the details of this traveler with the RULES to decide if -
-                    1. Let them Enter
-                    2. Don't let them enter
-                    3. Scrutinize even more with extensive security checks. 
+            template="""
+            Traveler Action: {action}
 
-                You can also refer to history of chats if available.
-                Show me how you think and analyze with the given info but don't make it VERY big. Then give the final verdict
-                include source metadata (page numbers) in results so the LLM can cite “page X” in verdicts.
+            Traveler Information:
+            {info}
 
-                DO NOT HALLUCINATE.
+            Relevant Immigration Rules:
+            {data}
+
+            If the traveler action is enter, decide:
+            1. Allow Entry
+            2. Deny Entry
+            3. Send for Further Scrutiny
+
+            If the traveler action is exit, decide:
+            1. Allow Exit
+            2. Stop Exit (legal or immigration violation)
+            3. Send for Investigation
+
+            Provide a decent reasoning based on the rules and then give the final verdict. sho your thinking
+
+            Always cite the rule page numbers like: (Page X)
+
+            DO NOT hallucinate rules.
             """,
-            input_variables=['info','data']
+            input_variables=["info", "data", "action"]
         )
     else:
         prompt = PromptTemplate(
@@ -67,7 +76,7 @@ def rag_model(info):
         )
 
     chain = prompt | model
-    result = chain.invoke({"info" : info, "data" : context_text})
+    result = chain.invoke({"info" : info, "data" : context_text, "action":action})
 
     return result
     
